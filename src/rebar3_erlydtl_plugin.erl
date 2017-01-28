@@ -193,7 +193,7 @@ compile_dtl(_, Source, Target, DtlOpts, Dir, OutDir) ->
     Target2 = filename:join(Target1, Source3) ++ "_dtl",
     Target3 = module_name(Target2),
 
-    logger:info(Source, Target, DtlOpts, Dir, OutDir),
+    logger:info(Source, Target3, DtlOpts, Dir, OutDir),
 
     case needs_compile(Source, Target3, DtlOpts) of
         true ->
