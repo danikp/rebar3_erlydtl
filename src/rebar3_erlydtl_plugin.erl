@@ -191,10 +191,11 @@ compile_dtl(_, Source, Target, DtlOpts, Dir, OutDir) ->
     Source3 = re:replace(Source2, "_src", option(app, DtlOpts), [{return, list}]),
     Target1 = filename:dirname(Target),
     Target2 = filename:join(Target1, Source3),
+    Target3 = module_name(Target2),
 
-    case needs_compile(Source, Target2, DtlOpts) of
+    case needs_compile(Source, Target3, DtlOpts) of
         true ->
-            do_compile(Source, Target2, DtlOpts, Dir, OutDir);
+            do_compile(Source, Target3, DtlOpts, Dir, OutDir);
         false ->
             skipped
     end.
