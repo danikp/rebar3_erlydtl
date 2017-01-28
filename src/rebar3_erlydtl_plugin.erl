@@ -190,8 +190,8 @@ compile_dtl(_, Source, Target, DtlOpts, Dir, OutDir) ->
     Source2 = re:replace(Source1, "/", "_", [{return, list}, global]),
     Source3 = re:replace(Source2, "_src", option(app, DtlOpts), [{return, list}]),
     Target1 = filename:dirname(Target),
-    Target2 = filename:join(Target1, Source3) ++ "_dtl",
-    Target3 = module_name(Target2),
+    Target2 = filename:join(Target1, Source3),
+    Target3 = filename:rootname(Target2) ++ "_dtl.beam",
 
     logger:info(Source, Target3, DtlOpts, Dir, OutDir),
 
