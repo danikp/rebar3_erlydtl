@@ -185,9 +185,17 @@ default(compiler_options) -> [debug_info, return];
 default(recursive) -> true.
 
 compile_dtl(_, Source, Target, DtlOpts, Dir, OutDir) ->
-    case needs_compile(Source, Target, DtlOpts) of
+    % hack into target filename to use app name and path inside doc_root
+    Source1 = re:replace(Source, Dir, "", [{return, list}, notempty]),
+    Source2 = re:replace(Source1, "/", "_", [{return, list}, global]),
+    Source3 = re:replace(Source2, "_src", option(app, DtlOpts), [{return, list}]),
+    Target1 = filename:dirname(Target),
+    Target2 = filename:join(Target1, Source3),
+    Target3 = filename:rootname(Target2) ++ "_dtl.beam",
+
+    case needs_compile(Source, Target3, DtlOpts) of
         true ->
-            do_compile(Source, Target, DtlOpts, Dir, OutDir);
+            do_compile(Source, Target3, DtlOpts, Dir, OutDir);
         false ->
             skipped
     end.
