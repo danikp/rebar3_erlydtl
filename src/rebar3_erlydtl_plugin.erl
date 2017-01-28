@@ -193,8 +193,6 @@ compile_dtl(_, Source, Target, DtlOpts, Dir, OutDir) ->
     Target2 = filename:join(Target1, Source3),
     Target3 = filename:rootname(Target2) ++ "_dtl.beam",
 
-    logger:info(Source, Target3, DtlOpts, Dir, OutDir),
-
     case needs_compile(Source, Target3, DtlOpts) of
         true ->
             do_compile(Source, Target3, DtlOpts, Dir, OutDir);
