@@ -185,8 +185,6 @@ default(compiler_options) -> [debug_info, return];
 default(recursive) -> true.
 
 compile_dtl(_, Source, Target, DtlOpts, Dir, OutDir) ->
-logger:info(Source),
-logger:info(Target),
     case needs_compile(Source, Target, DtlOpts) of
         true ->
             do_compile(Source, Target, DtlOpts, Dir, OutDir);
@@ -195,6 +193,7 @@ logger:info(Target),
     end.
 
 do_compile(Source, Target, DtlOpts, Dir, OutDir) ->
+logger:info([Source, Target, DtlOpts, Dir, OutDir]),
     CompilerOptions = option(compiler_options, DtlOpts),
 
     Sorted = proplists:unfold(
