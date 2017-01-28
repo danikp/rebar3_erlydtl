@@ -185,10 +185,11 @@ default(compiler_options) -> [debug_info, return];
 default(recursive) -> true.
 
 compile_dtl(_, Source, Target, DtlOpts, Dir, OutDir) ->
-    Source1 = re:replace(Source, Dir, ""),
-    Source2 = re:replace(Source1, "/", "_"),
+    Source1 = re:replace(Source, Dir, "", {return, list}),
+    Source2 = re:replace(Source1, "/", "_", {return, list}),
+    Source3 = re:replace(Source2, "src", option(app, DtlOpts), {return, list}),
     Target1 = filename:dirname(Target),
-    Target2 = fielname:join(Target1, Source2),
+    Target2 = filename:join(Target1, Source3),
 
     logger:info([Source, Target2, DtlOpts, Dir, OutDir]),
 
