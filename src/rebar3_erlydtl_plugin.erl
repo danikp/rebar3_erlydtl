@@ -185,15 +185,21 @@ default(compiler_options) -> [debug_info, return];
 default(recursive) -> true.
 
 compile_dtl(_, Source, Target, DtlOpts, Dir, OutDir) ->
-    case needs_compile(Source, Target, DtlOpts) of
+    Source1 = re:replace(Source, Dir, ""),
+    Source2 = re:replace(Source1, "/", "_"),
+    Target1 = filename:dirname(Target),
+    Target2 = fielname:join(Target1, Source2),
+
+    logger:info([Source, Target2, DtlOpts, Dir, OutDir]),
+
+    case needs_compile(Source, Target2, DtlOpts) of
         true ->
-            do_compile(Source, Target, DtlOpts, Dir, OutDir);
+            do_compile(Source, Target2, DtlOpts, Dir, OutDir);
         false ->
             skipped
     end.
 
 do_compile(Source, Target, DtlOpts, Dir, OutDir) ->
-logger:info([Source, Target, DtlOpts, Dir, OutDir]),
     CompilerOptions = option(compiler_options, DtlOpts),
 
     Sorted = proplists:unfold(
