@@ -162,6 +162,7 @@ do(State) ->
           end, expand_opts(DtlOpts1))
      end || AppInfo <- Apps],
 
+    rebar_api:info("Finished erlydtl...", []),
     {ok, State}.
 
 
@@ -213,11 +214,12 @@ do_compile(Source, Target, DtlOpts, Dir, OutDir) ->
     CompilerOptions = option(compiler_options, DtlOpts),
 
     Sorted = proplists:unfold(
-               lists:sort(
-                 [{out_dir, OutDir},
-                  {doc_root, filename:join(Dir, option(doc_root, DtlOpts))},
-                  {custom_tags_dir, option(custom_tags_dir, DtlOpts)},
-                  {compiler_options, CompilerOptions}])),
+        lists:sort([
+            {out_dir, OutDir},
+            {doc_root, filename:join(Dir, option(doc_root, DtlOpts))},
+            {custom_tags_dir, option(custom_tags_dir, DtlOpts)},
+            {compiler_options, CompilerOptions}
+        ])),
 
     %% ensure that doc_root and out_dir are defined,
     %% using defaults if necessary
