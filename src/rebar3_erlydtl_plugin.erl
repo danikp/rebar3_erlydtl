@@ -96,9 +96,7 @@
 
 -behaviour(provider).
 
--export([init/1,
-         do/1,
-         format_error/1]).
+-export([init/1, do/1, format_error/1]).
 
 -define(PROVIDER, compile).
 -define(DEPS, [{default, compile}]).
@@ -109,25 +107,21 @@
 
 -spec init(rebar_state:t()) -> {ok, rebar_state:t()}.
 init(State) ->
-    State1 = rebar_state:add_provider(State, providers:create([{name, ?PROVIDER},
-                                                               {module, ?MODULE},
-                                                               {namespace, erlydtl},
-                                                               {bare, false},
-                                                               {deps, ?DEPS},
-                                                               {example, "rebar3 erlydtl compile"},
-                                                               {short_desc, "Compile erlydtl templates."},
-                                                               {desc, "Compile erlydtl templates."},
-                                                               {opts, []}])),
-    {ok, State1}.
+    Provider = providers:create([
+        {name, ?PROVIDER},            % The 'user friendly' name of the task
+        {module, ?MODULE},            % The module implementation of the task
+        {namespace, ?NAMESPACE},
+        {bare, true},                 % The task can be run by the user, always true
+        {deps, ?DEPS},                % The list of dependencies
+        {example, "rebar3 erlydtl compile"}, % How to use the plugin
+        {opts, []},                   % list of options understood by the plugin
+        {short_desc, "Compile erlydtl templates."},
+        {desc, "Compile erlydtl templates."}
+    ]),
+    {ok, rebar_state:add_provider(State, Provider)}.
 
-expand_opts(Opts) ->
-    SharedOpts = lists:filter(fun(X) -> is_tuple(X) end, Opts),
-    OptsLists  = case lists:filter(fun(X) -> is_list(X) end, Opts) of
-                   [] -> [[]];
-                   L  -> L
-                 end,
-    lists:map(fun(X) -> lists:ukeymerge(1, proplists:unfold(X), SharedOpts) end, OptsLists).
 
+-spec do(rebar_state:t()) -> {ok, rebar_state:t()} | {error, string()}.
 do(State) ->
     rebar_api:info("Running erlydtl...", []),
     Apps = case rebar_state:current_app(State) of
@@ -149,21 +143,26 @@ do(State) ->
              DtlOpts3 = [{custom_tags_dir, TagDir} | proplists:delete(custom_tags_dir, DtlOpts2)],
              filelib:ensure_dir(filename:join(OutDir, "dummy.beam")),
 
-             rebar_base_compiler:run(Opts,
-                                     [],
-                                     TemplateDir,
-                                     option(source_ext, DtlOpts3),
-                                     OutDir,
-                                     option(module_ext, DtlOpts3) ++ ".beam",
-                                     fun(S, T, C) ->
-                                             compile_dtl(C, S, T, DtlOpts3, Dir, OutDir)
-                                     end,
-                                     [{check_last_mod, false},
-                                      {recursive, option(recursive, DtlOpts3)}])
+             rebar_base_compiler:run(
+                Opts,
+                [],
+                TemplateDir,
+                option(source_ext, DtlOpts3),
+                OutDir,
+                option(module_ext, DtlOpts3) ++ ".beam",
+                fun(S, T, C) ->
+                    compile_dtl(C, S, T, DtlOpts3, Dir, OutDir)
+                end,
+                [
+                    {check_last_mod, false},
+                    {recursive, option(recursive, DtlOpts3)}
+                ]
+            )
           end, expand_opts(DtlOpts1))
      end || AppInfo <- Apps],
 
     {ok, State}.
+
 
 -spec format_error(any()) ->  iolist().
 format_error(Reason) ->
@@ -172,6 +171,14 @@ format_error(Reason) ->
 %% ===================================================================
 %% Internal functions
 %% ===================================================================
+
+expand_opts(Opts) ->
+    SharedOpts = lists:filter(fun(X) -> is_tuple(X) end, Opts),
+    OptsLists  = case lists:filter(fun(X) -> is_list(X) end, Opts) of
+                   [] -> [[]];
+                   L  -> L
+                 end,
+    lists:map(fun(X) -> lists:ukeymerge(1, proplists:unfold(X), SharedOpts) end, OptsLists).
 
 option(Opt, DtlOpts) ->
     proplists:get_value(Opt, DtlOpts, default(Opt)).
@@ -200,6 +207,7 @@ compile_dtl(_, Source, Target, DtlOpts, Dir, OutDir) ->
             skipped
     end.
 
+
 do_compile(Source, Target, DtlOpts, Dir, OutDir) ->
     CompilerOptions = option(compiler_options, DtlOpts),
 
@@ -213,7 +221,7 @@ do_compile(Source, Target, DtlOpts, Dir, OutDir) ->
     %% ensure that doc_root and out_dir are defined,
     %% using defaults if necessary
     Opts = lists:ukeymerge(1, DtlOpts, Sorted),
-    rebar_api:debug("Compiling \"~s\" -> \"~s\" with options:~n    ~s",
+    rebar_api:info("Compiling \"~s\" -> \"~s\" with options:~n    ~s",
                     [Source, Target, io_lib:format("~p", [Opts])]),
     case erlydtl:compile_file(ec_cnv:to_list(Source),
                               list_to_atom(module_name(Target)),
@@ -228,8 +236,10 @@ do_compile(Source, Target, DtlOpts, Dir, OutDir) ->
             rebar_base_compiler:error_tuple(Source, Es, Ws, Opts)
     end.
 
+
 module_name(Target) ->
     filename:rootname(filename:basename(Target), ".beam").
+
 
 needs_compile(Source, Target, DtlOpts) ->
     LM = filelib:last_modified(Target),
@@ -237,12 +247,14 @@ needs_compile(Source, Target, DtlOpts) ->
         lists:any(fun(D) -> LM < filelib:last_modified(D) end,
                   referenced_dtls(Source, DtlOpts)).
 
+
 referenced_dtls(Source, DtlOpts) ->
     DtlOpts1 = lists:keyreplace(doc_root, 1, DtlOpts,
         {doc_root, filename:dirname(Source)}),
     Set = referenced_dtls1([Source], DtlOpts1,
                            sets:add_element(Source, sets:new())),
     sets:to_list(sets:del_element(Source, Set)).
+
 
 referenced_dtls1(Step, DtlOpts, Seen) ->
     ExtMatch = re:replace(option(source_ext, DtlOpts), "\.", "\\\\\\\\.",
@@ -263,7 +275,7 @@ referenced_dtls1(Step, DtlOpts, Seen) ->
            end || F <- Step]),
     DocRoot = option(doc_root, DtlOpts),
     WithPaths = [ filename:join([DocRoot, F]) || F <- AllRefs ],
-    rebar_api:debug("All deps: ~p\n", [WithPaths]),
+    rebar_api:info("All deps: ~p\n", [WithPaths]),
     Existing = [F || F <- WithPaths, filelib:is_regular(F)],
     New = sets:subtract(sets:from_list(Existing), Seen),
     case sets:size(New) of
