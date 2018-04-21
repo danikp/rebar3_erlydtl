@@ -100,7 +100,7 @@
 
 -define(PROVIDER, compile).
 -define(NAMESPACE, erlydtl).
--define(DEPS, [{compile}]).
+-define(DEPS, [compile]).
 
 %% ===================================================================
 %% Public API
