@@ -92,7 +92,7 @@
 %%          {doc_root, "priv/templates"}, {module_ext, ""}, {source_ext, ".html"}
 %%      ]
 %%   ]}.
--module(rebar3_erlydtl_plugin).
+-module(rebar3_erlydtl_compile).
 
 -behaviour(provider).
 

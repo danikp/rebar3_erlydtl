@@ -1,0 +1,12 @@
+{application, rebar3_erlydtl, [
+    {description, "A rebar plugin"}
+     ,{vsn, "0.3.0"}
+     ,{registered, []}
+     ,{applications, [kernel, stdlib, erlydtl]}
+     ,{env,[]}
+     ,{modules, []}
+
+     ,{contributors, ["Tristan Sloughter", "Dmitry Polyanovsky"]}
+     ,{licenses, ["MIT"]}
+     ,{links, [{"Github", "https://github.com/danikp/rebar3_erlydtl"}]}
+ ]}.
